@@ -4,19 +4,15 @@ use std::fmt;
 #[derive(Debug)]
 #[allow(dead_code)]
 pub enum StructIs {
-    Unnamed,
     Enum,
     Union,
-    Unit,
 }
 
 impl fmt::Display for StructIs {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Self::Unnamed => write!(f, "an unnamed struct"),
             Self::Enum => write!(f, "an enum"),
             Self::Union => write!(f, "a union"),
-            Self::Unit => write!(f, "a unit struct"),
         }
     }
 }

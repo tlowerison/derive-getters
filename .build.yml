@@ -14,10 +14,10 @@ tasks:
       ./rustup.sh -y
       cat .cargo/env >> .buildenv
   - build: |
-      cd scl
+      cd derive-getters
       cargo build
       cargo build --release
   - test: |
-      cd scl
+      cd derive-getters
       cargo test
       cargo test --release

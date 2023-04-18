@@ -2,6 +2,7 @@
 use std::fmt;
 
 #[derive(Debug)]
+#[allow(dead_code)]
 pub enum StructIs {
     Unnamed,
     Enum,
@@ -23,6 +24,7 @@ impl fmt::Display for StructIs {
 // Almost an error type! But `syn` already has an error type so this just fills the
 // `T: Display` part to avoid strings littering the source.
 #[derive(Debug)]
+#[allow(dead_code)]
 pub enum Problem {
     NotNamedStruct(StructIs),
     UnnamedField,

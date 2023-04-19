@@ -58,7 +58,11 @@ fn get_action_from(attributes: &[Attribute]) -> Result<Option<Action>> {
     let mut current: Option<Action> = None;
     
     for attr in attributes {
-        if attr.style != AttrStyle::Outer { continue; }
+        //if attr.style != AttrStyle::Outer { continue; }
+
+        if attr.path.is_ident("doc") {
+            
+        }
         
         if attr.path.is_ident("getter") {
             current = Some(attr.parse_args::<Action>()?);
@@ -84,7 +88,7 @@ impl Field {
             Some(Action::Skip) => return Ok(None),
             Some(Action::Rename(ident)) => Ok(Some(Field {
                 ty: field.ty.clone(),
-                name: name,
+                name,
                 getter: ident,
             })),
             None => Ok(Some(Field {

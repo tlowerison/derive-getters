@@ -40,7 +40,7 @@ impl Field {
         
         Ok(Field {
             ty: field.ty.clone(),
-            name: name,
+            name,
         })
     }
     

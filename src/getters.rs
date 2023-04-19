@@ -7,7 +7,6 @@ use syn::{
     DeriveInput,
     FieldsNamed,
     Type,
-    AttrStyle,
     Ident,
     LitStr,
     Result,

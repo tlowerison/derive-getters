@@ -57,12 +57,6 @@ fn get_action_from(attributes: &[Attribute]) -> Result<Option<Action>> {
     let mut current: Option<Action> = None;
     
     for attr in attributes {
-        //if attr.style != AttrStyle::Outer { continue; }
-
-        if attr.path.is_ident("doc") {
-            
-        }
-        
         if attr.path.is_ident("getter") {
             current = Some(attr.parse_args::<Action>()?);
         }
@@ -110,15 +104,21 @@ impl Field {
             })
     }
 
-    fn emit(&self) -> TokenStream {
+    fn emit(&self, struct_name: &Ident) -> TokenStream {
         let returns = &self.ty;
         let field_name = &self.name;
         let getter_name = &self.getter;
+        let comment = format!(
+            "Get field {} from instance of {}.",
+            field_name,
+            struct_name,
+        );
         
         match &self.ty {
             Type::Reference(tr) => {
                 let lifetime = tr.lifetime.as_ref();
                 quote!(
+                    #[doc=#comment]
                     pub fn #getter_name(&#lifetime self) -> #returns {
                         self.#field_name
                     }
@@ -126,6 +126,7 @@ impl Field {
             },
             _ => {
                 quote!(
+                    #[doc=#comment]
                     pub fn #getter_name(&self) -> &#returns {
                         &self.#field_name
                     }
@@ -148,7 +149,7 @@ impl<'a> NamedStruct<'a> {
         let struct_name = &self.name;
         let methods: Vec<TokenStream> = self.fields
             .iter()
-            .map(|field| field.emit())
+            .map(|field| field.emit(&self.name))
             .collect();
 
         quote!(

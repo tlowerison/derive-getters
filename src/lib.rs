@@ -26,10 +26,8 @@
 //!     num: u64,    
 //! }
 //! 
-//! fn main() {
-//!     let number = Number { num: 655 };
-//!     assert!(number.num() == &655);
-//! }
+//! let number = Number { num: 655 };
+//! assert!(number.num() == &655);
 //! ```
 //!
 //! Here, a method called `num()` has been created for the `Number` struct which gives a

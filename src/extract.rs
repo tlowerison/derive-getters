@@ -5,7 +5,7 @@ use syn::{FieldsNamed, DataStruct, DeriveInput, Data, Fields, Error, Result};
 
 use crate::faultmsg::{StructIs, Problem};
 
-pub fn named_fields<'a>(structure: &'a DataStruct) -> Result<&'a FieldsNamed> {
+pub fn named_fields(structure: &DataStruct) -> Result<&FieldsNamed> {
     match structure.fields {
         Fields::Named(ref fields) => Ok(fields),
         Fields::Unnamed(_) | Fields::Unit => Err(
@@ -14,7 +14,7 @@ pub fn named_fields<'a>(structure: &'a DataStruct) -> Result<&'a FieldsNamed> {
     }
 }
 
-pub fn named_struct<'a>(node: &'a DeriveInput) -> Result<&'a DataStruct> {
+pub fn named_struct(node: &DeriveInput) -> Result<&DataStruct> {
     match node.data {
         Data::Struct(ref structure) => Ok(structure),
         Data::Enum(_) => Err(

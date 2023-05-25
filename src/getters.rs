@@ -2,7 +2,7 @@
 use std::convert::TryFrom;
 
 use proc_macro2::{TokenStream, Span};
-use quote::quote;
+use quote::{quote, ToTokens};
 use syn::{
     DeriveInput,
     FieldsNamed,
@@ -53,22 +53,62 @@ impl Parse for Action {
     }
 }
 
-fn get_action_from(attributes: &[Attribute]) -> Result<Option<Action>> {
-    let mut current: Option<Action> = None;
-    
-    for attr in attributes {
-        if attr.path.is_ident("getter") {
-            current = Some(attr.parse_args::<Action>()?);
+#[derive(Debug, Clone)]
+struct Doc(TokenStream);
+
+/*
+impl Parse for Doc {
+    fn parse(input: ParseStream) -> Result<Self> {
+        dbg!(&input);
+        let _ = input.parse::<Token![=]>()?;
+        let doc = input.parse::<LitStr>()?;
+
+        if !input.is_empty() {
+            Err(Error::new(Span::call_site(), Problem::BotchedDocComment))
+        } else {
+            Ok(Doc(doc.value()))
         }
     }
+}
+*/
+
+#[derive(Debug, Clone)]
+struct Work {
+    /// Whether to carry out an action (skip or rename) on the field.
+    special: Option<Action>,
+
+    /// The documentation, if any, on the field.
+    docs: Vec<Doc>,
+}
+
+impl TryFrom<&[Attribute]> for Work {
+    type Error = Error;
     
-    Ok(current)
+    fn try_from(attributes: &[Attribute]) -> Result<Self> {
+        let mut special: Option<Action> = None;
+        let mut docs: Vec<Doc> = Vec::new();
+
+        for attr in attributes {
+            if attr.path.is_ident("getter") {
+                special = Some(attr.parse_args::<Action>()?);
+            }
+
+            if attr.path.is_ident("doc") {
+                //dbg!(&attr);
+                //docs.push(attr.parse_args::<Doc>()?);
+                docs.push(Doc(attr.to_token_stream()));
+            }
+        }
+
+        Ok(Work { special, docs })
+    }
 }
 
 pub struct Field {
     ty: Type,    
     name: Ident,
     getter: Ident,
+    docs: Vec<Doc>,
 }
 
 impl Field {
@@ -76,19 +116,29 @@ impl Field {
         let name: Ident =  field.ident
             .clone()
             .ok_or(Error::new(Span::call_site(), Problem::UnnamedField))?;
-        
-        match get_action_from(field.attrs.as_slice())? {
-            Some(Action::Skip) => return Ok(None),
-            Some(Action::Rename(ident)) => Ok(Some(Field {
-                ty: field.ty.clone(),
-                name,
-                getter: ident,
-            })),
-            None => Ok(Some(Field {
-                ty: field.ty.clone(),
-                name: name.clone(),
-                getter: name,
-            })),
+
+        let work = Work::try_from(field.attrs.as_slice())?;
+
+        //dbg!(&work);
+
+        match work {
+            Work { special: Some(Action::Skip), docs: _ } => Ok(None),
+            Work { special: Some(Action::Rename(ident)), docs } => {
+                Ok(Some(Field {
+                    ty: field.ty.clone(),
+                    name,
+                    getter: ident,
+                    docs
+                }))
+            },
+            Work { special: None, docs } => {
+                Ok(Some(Field {
+                    ty: field.ty.clone(),
+                    name: name.clone(),
+                    getter: name,
+                    docs,
+                }))
+            },
         }
     }
     
@@ -108,17 +158,27 @@ impl Field {
         let returns = &self.ty;
         let field_name = &self.name;
         let getter_name = &self.getter;
-        let comment = format!(
-            "Get field {} from instance of {}.",
-            field_name,
-            struct_name,
-        );
+        
+        let doc_comments: Vec<TokenStream> = if self.docs.is_empty() {
+            let comment = format!(
+                " Get field `{}` from instance of `{}`.",
+                field_name,
+                struct_name,
+            );
+            
+            vec![quote!(#[doc=#comment])]
+        } else {
+            self.docs
+                .iter()
+                .map(|d| d.0.to_owned())
+                .collect()
+        };
         
         match &self.ty {
             Type::Reference(tr) => {
                 let lifetime = tr.lifetime.as_ref();
                 quote!(
-                    #[doc=#comment]
+                    #(#doc_comments)*
                     pub fn #getter_name(&#lifetime self) -> #returns {
                         self.#field_name
                     }
@@ -126,7 +186,7 @@ impl Field {
             },
             _ => {
                 quote!(
-                    #[doc=#comment]
+                    #(#doc_comments)*
                     pub fn #getter_name(&self) -> &#returns {
                         &self.#field_name
                     }

@@ -138,8 +138,15 @@ impl<'a> NamedStruct<'a> {
         let fn_name = self.dissolve_rename
             .as_ref()
             .unwrap_or(&dissolve);
+
+        let comment = format!(
+            " Dissolve `{}` into a tuple consisting of its fields in order of declaration.",
+            struct_name,
+        );
+        let doc_comment: TokenStream = quote!(#[doc=#comment]);
         
         quote!(
+            #doc_comment
             impl #impl_generics #struct_name #struct_generics
                 #where_clause
             {

@@ -36,6 +36,7 @@ pub enum Problem {
     TokensFollowSkip,
     TokensFollowNewName,
     InvalidAttribute,
+    BotchedDocComment,
 }
 
 impl fmt::Display for Problem {
@@ -64,6 +65,9 @@ impl fmt::Display for Problem {
             },
             Self::InvalidAttribute => {
                 write!(f, "invalid attribute")
+            },
+            Self::BotchedDocComment => {
+                write!(f, "Doc comment is botched")
             },
         }
     }

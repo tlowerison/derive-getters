@@ -4,7 +4,7 @@ use std::{
     convert::TryFrom,
 };
 
-use proc_macro2::{TokenStream, Span};
+use proc_macro2::{TokenStream, Span, Group, Delimiter};
 use quote::quote;
 use syn::{
     DeriveInput,
@@ -82,7 +82,7 @@ fn dissolve_rename_from(attributes: &[Attribute]) -> Result<Option<Ident>> {
     for attr in attributes {
         if attr.style != AttrStyle::Outer { continue; }
 
-        if attr.path.is_ident("dissolve") {
+        if attr.path().is_ident("dissolve") {
             let rename = attr.parse_args::<Rename>()?;
             current = Some(rename.name);
         }
@@ -111,9 +111,20 @@ impl<'a> NamedStruct<'a> {
                 p
             });
 
-        let type_tuple = TypeTuple {
-            paren_token: Paren { span: Span::call_site() },
-            elems: types,
+        let return_type = if types.len() > 1 {
+            let tup_group = Group::new(Delimiter::Parenthesis, quote!(#types));
+            let type_tuple = TypeTuple {
+                paren_token: Paren { span: tup_group.delim_span() },
+                elems: types,
+            };
+
+            quote!(#type_tuple)
+        } else {
+            if let Some(elem) = types.first() {
+                quote!(#elem)
+            } else {
+                quote!(())
+            }
         };
 
         let fields: TokenStream = self.fields
@@ -154,7 +165,7 @@ impl<'a> NamedStruct<'a> {
                 #where_clause
             {
                 #fn_doc_comment
-                pub fn #fn_name(self) -> #type_tuple {
+                pub fn #fn_name(self) -> #return_type {
                     (
                         #fields
                     )

@@ -73,11 +73,11 @@ impl TryFrom<&[Attribute]> for Work {
         let mut docs: Vec<Doc> = Vec::new();
 
         for attr in attributes {
-            if attr.path.is_ident("getter") {
+            if attr.path().is_ident("getter") {
                 special = Some(attr.parse_args::<Action>()?);
             }
 
-            if attr.path.is_ident("doc") {
+            if attr.path().is_ident("doc") {
                 docs.push(Doc(attr.to_token_stream()));
             }
         }

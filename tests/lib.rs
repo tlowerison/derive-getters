@@ -8,7 +8,9 @@ fn tests() {
     t.pass("tests/05-skip-rename-attributes.rs");
     t.pass("tests/06-plays-with-others.rs");
     t.pass("tests/07-dissolve-basic.rs");
-    t.pass("tests/08-dissolve-generic-and-ref.rs");    
+    t.pass("tests/08-dissolve-generic-and-ref.rs");
+    t.pass("tests/09-dissolve-tuple-struct.rs");
+    t.compile_fail("tests/10-dissolve-unit-struct.rs");
 }
 
 #[test]

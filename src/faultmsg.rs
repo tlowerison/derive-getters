@@ -28,6 +28,7 @@ impl fmt::Display for StructIs {
 pub enum Problem {
     NotNamedStruct(StructIs),
     UnnamedField,
+    UnitStruct,
     InnerAttribute,
     EmptyAttribute,
     NoGrouping,
@@ -46,6 +47,7 @@ impl fmt::Display for Problem {
                 write!(f, "type must be a named struct, not {}", is)
             },
             Self::UnnamedField => write!(f, "struct fields must be named"),
+            Self::UnitStruct => write!(f, "unit struct has nothing to dissolve"),
             Self::InnerAttribute => {
                 write!(f, "attribute is an outer not inner attribute")
             },

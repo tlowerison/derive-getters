@@ -4,7 +4,9 @@ use std::convert::TryFrom;
 use proc_macro2::{TokenStream, Span};
 use quote::{quote, ToTokens};
 use syn::{
+    DataStruct,
     DeriveInput,
+    Fields,
     FieldsNamed,
     Type,
     Ident,
@@ -16,7 +18,7 @@ use syn::{
 };
 
 use crate::{
-    extract::{named_fields, named_struct},
+    extract::named_struct,
     faultmsg::Problem,
 };
 
@@ -134,6 +136,20 @@ impl Field {
             })
     }
 
+    fn from_struct(structure: &DataStruct) -> Result<Vec<Self>> {
+        let fields_named = match structure.fields {
+            Fields::Named(ref fields) => Ok(fields),
+            Fields::Unnamed(_) => Err(
+                Error::new(Span::call_site(), Problem::UnnamedField)
+            ),
+            Fields::Unit => Err(
+                Error::new(Span::call_site(), Problem::UnitStruct)
+            ),
+        }?;
+
+        Self::from_fields_named(fields_named)
+    }
+
     fn emit(&self, struct_name: &Ident) -> TokenStream {
         let returns = &self.ty;
         let field_name = &self.name;
@@ -211,8 +227,7 @@ impl<'a> TryFrom<&'a DeriveInput> for NamedStruct<'a> {
     
     fn try_from(node: &'a DeriveInput) -> Result<Self> {
         let struct_data = named_struct(node)?;
-        let named_fields = named_fields(struct_data)?;
-        let fields = Field::from_fields_named(named_fields)?;
+        let fields = Field::from_struct(struct_data)?;
 
         Ok(NamedStruct {
             original: node,

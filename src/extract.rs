@@ -1,21 +1,8 @@
 //! Common functions
 
-use proc_macro2::Span;
-use syn::{FieldsNamed, DataStruct, DeriveInput, Data, Fields, Error, Result};
+use syn::{DataStruct, DeriveInput, Data, Error, Result};
 
 use crate::faultmsg::{StructIs, Problem};
-
-pub fn named_fields(structure: &DataStruct) -> Result<&FieldsNamed> {    
-    match structure.fields {
-        Fields::Named(ref fields) => Ok(fields),
-        Fields::Unnamed(_) => Err(
-            Error::new(Span::call_site(), Problem::UnnamedField)
-        ),
-        Fields::Unit => Err(
-            Error::new(Span::call_site(), Problem::UnitStruct)
-        ),
-    }
-}
 
 pub fn named_struct(node: &DeriveInput) -> Result<&DataStruct> {
     match node.data {

@@ -7,10 +7,14 @@ use std::{
 use proc_macro2::{TokenStream, Span, Group, Delimiter};
 use quote::quote;
 use syn::{
+    DataStruct,
     DeriveInput,
+    Fields,
     FieldsNamed,
+    FieldsUnnamed,
     Type,
     Ident,
+    Index,
     Result,
     Error,
     TypeTuple,
@@ -23,13 +27,18 @@ use syn::{
 };
 
 use crate::{
-    extract::{named_fields, named_struct},
+    extract::named_struct,
     faultmsg::Problem,
 };
 
+pub enum IndexOrName {
+    Index(Index),
+    Name(Ident),
+}
+
 pub struct Field {
-    ty: Type,    
-    name: Ident,
+    ty: Type,
+    name: IndexOrName,
 }
 
 impl Field {
@@ -40,7 +49,7 @@ impl Field {
         
         Ok(Field {
             ty: field.ty.clone(),
-            name,
+            name: IndexOrName::Name(name),
         })
     }
     
@@ -49,6 +58,27 @@ impl Field {
             .iter()
             .map(Field::from_field)
             .collect()
+    }
+
+    fn from_fields_unnamed(fields_unnamed: &FieldsUnnamed) -> Result<Vec<Self>> {
+        fields_unnamed.unnamed
+            .iter()
+            .enumerate()
+            .map(|(i, field)| Ok(Field {
+                ty: field.ty.clone(),
+                name: IndexOrName::Index(Index::from(i)),
+            }))
+            .collect()
+    }
+
+    fn from_struct(structure: &DataStruct) -> Result<Vec<Self>> {
+        match structure.fields {
+            Fields::Named(ref fields) => Self::from_fields_named(fields),
+            Fields::Unnamed(ref fields) => Self::from_fields_unnamed(fields),
+            Fields::Unit => Err(
+                Error::new(Span::call_site(), Problem::UnitStruct)
+            ),
+        }
     }
 }
 
@@ -136,9 +166,18 @@ impl<'a> NamedStruct<'a> {
                 }
                 
                 let field_name = &field.name;
-                let field_expr = quote!(
-                    self.#field_name
-                );
+                let field_expr = match field_name {
+                    IndexOrName::Name(name) => {
+                        quote!(
+                            self.#name
+                        )
+                    },
+                    IndexOrName::Index(i) => {
+                        quote!(
+                            self.#i
+                        )
+                    },
+                };
 
                 ts.extend(field_expr);
 
@@ -180,8 +219,7 @@ impl<'a> TryFrom<&'a DeriveInput> for NamedStruct<'a> {
     
     fn try_from(node: &'a DeriveInput) -> Result<Self> {
         let struct_data = named_struct(node)?;
-        let named_fields = named_fields(struct_data)?;
-        let fields = Field::from_fields_named(named_fields)?;
+        let fields = Field::from_struct(struct_data)?;
         let rename = dissolve_rename_from(node.attrs.as_slice())?;
 
         Ok(NamedStruct {

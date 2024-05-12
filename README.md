@@ -1,6 +1,6 @@
 # Derive Getters
 
-Simple `Getters` derive macro for generating field getter methods on a named struct. Included is an additional derive, `Dissolve`, that consumes the named struct returning a tuple of all fields in the order they were declared.  Any doc comments on the target struct fields are replicated for the corresponding getters. If no comment is present one shall be generated.
+Simple `Getters` derive macro for generating field getter methods on a named struct. Included is an additional derive, `Dissolve`, that consumes the struct returning a tuple of all fields in the order they were declared. Dissolve can also be derived for tuple structs.  Any doc comments on the target struct fields are replicated for the corresponding getters. If no comment is present one shall be generated.
 
 The need for the `Getters` macro came about when I was making various data structures for JSON to deserialize into. These data structures had many fields in them to access and they weren't going to change once created. One could use `pub` everywhere but that would enable mutating the fields which is what this derive aims to avoid.
 
@@ -12,14 +12,14 @@ With regards to `Dissolve`, sometimes during conversion a structure must be cons
 There are no mutable getters and it's not planned. There are no setters either nor will there ever be.
 
 ## Rust Docs
-[Documentation is here.](https://docs.rs/derive-getters/0.3.0)
+[Documentation is here.](https://docs.rs/derive-getters/0.4.0)
 
 ## Installation
 
 Add to your `Cargo.toml`:
 ```toml
 [dependencies]
-derive-getters = "0.3.0"
+derive-getters = "0.4.0"
 ```
 
 Then import the `Getters` or `Dissolve` macro in whichever module it's needed (assuming 2018 edition).
@@ -60,7 +60,7 @@ impl MyCheesyStruct {
 }
 ```
 
-This crate can also handle structs with simple generic parameters and lifetime annotations. Check [docs](https://docs.rs/derive-getters/0.3.0) for further details.
+This crate can also handle structs with simple generic parameters and lifetime annotations. Check [docs](https://docs.rs/derive-getters/0.4.0) for further details.
 ```rust
 #[derive(Getters)]
 pub struct StructWithGeneric<'a, T> {
@@ -212,8 +212,9 @@ impl<'a, T> Funky<'a, T> {
 See? Now with comments!
 
 ## Caveats
-1. Will not work on unit structs, tuples or enums. Derive `Getters` or `Dissolve` over them and the macro will chuck a wobbly.
-2. All getter methods return an immutable reference, `&`, to their field. This means for some types it can get awkward.
+1. `Getters` cannot be derived for unit structs, tuple structs, or enums.
+2. `Dissolve` cannot be derived for unit structs or enums.
+3. All getter methods return an immutable reference, `&`, to their field. This means for some types it can get awkward.
 
 ## Alternatives
 [getset](https://github.com/Hoverbear/getset).

@@ -18,7 +18,7 @@
 //!
 //! In lib.rs or main.rs;
 //!
-//! ```edition2018
+//! ```edition2021
 //! use derive_getters::Getters;
 //!
 //! #[derive(Getters)]
@@ -35,7 +35,7 @@
 //!
 //! This macro can also derive on structs that have simple generic types. For example;
 //!
-//! ```edition2018
+//! ```edition2021
 //! # use derive_getters::Getters;
 //! #[derive(Getters)]
 //! struct Generic<T, U> {
@@ -47,7 +47,7 @@
 //! ```
 //!
 //! The macro can also handle generic types with trait bounds. For example;
-//! ```edition2018
+//! ```edition2021
 //! # use derive_getters::Getters;
 //! #[derive(Getters)]
 //! struct Generic<T: Clone, U: Copy> {
@@ -60,7 +60,7 @@
 //! The trait bounds can also be declared in a `where` clause.
 //!
 //! Additionaly, simple lifetimes are OK too;
-//! ```edition2018
+//! ```edition2021
 //! # use derive_getters::Getters;
 //! #[derive(Getters)]
 //! struct Annotated<'a, 'b, T> {
@@ -81,7 +81,7 @@
 //! * #[getter(rename = "name")]
 //! Changes the name of the getter (default is the field name) to "name".
 //!
-//!```edition2018
+//!```edition2021
 //! # use derive_getters::Getters;
 //! #[derive(Getters)]
 //! struct Attributed {
@@ -99,13 +99,14 @@
 //!
 //! # `Dissolve` method generated
 //!
-//! Deriving `Dissolve` on a named struct will generate a method `dissolve(self)` which
-//! shall return a tuple of all struct fields in the order they were defined. Calling this
-//! method consumes the struct. The name of this method can be changed with an attribute.
+//! Deriving `Dissolve` on a named or unit struct will generate a method `dissolve(self)`
+//! which shall return a tuple of all struct fields in the order they were defined. Calling
+//! this method consumes the struct. The name of this method can be changed with an
+//! attribute.
 //!
 //! # `Dissolve` usage
 //!
-//! ```edition2018
+//! ```edition2021
 //! # use derive_getters::Dissolve;
 //! #[derive(Dissolve)]
 //! struct Stuff {
@@ -128,12 +129,29 @@
 //! }
 //! ```
 //!
+//! # `Dissolve` can be derived on tuple structs.
+//!
+//! ```edition2021
+//! # use derive_getters::Dissolve;
+//! #[derive(Dissolve)]
+//! struct Stuff(String, f64, usize);
+//! 
+//! fn main() {
+//!     let stuff = Stuff("Hogie".to_owned(), 123.4f64, 100);
+//!
+//!     let (n, p, c) = stuff.dissolve();
+//!     assert!(n == "Hogie");
+//!     assert!(p == 123.4f64);
+//!     assert!(c == 100);
+//! }
+//! ```
+//!
 //! # `Dissolve` Attributes
 //! You can rename the `dissolve` function by using a struct attribute.
 //!
 //! * #[dissolve(rename = "name")]
 //!
-//! ```edition2018
+//! ```edition2021
 //! # use derive_getters::Dissolve;
 //! #[derive(Dissolve)]
 //! #[dissolve(rename = "shatter")]
@@ -156,7 +174,7 @@
 //! Any field comments are replicated for the getter. If the field on the target struct
 //! has a comment; the getter for it shall have the exact same comment.
 //!
-//! ```edition2018
+//! ```edition2021
 //! # use derive_getters::Getters;
 //! #[derive(Getters)]
 //! struct Number {
@@ -181,7 +199,8 @@
 //!
 //! # Panics
 //!
-//! If `Getters` or `Dissolve` are derived on unit, unnamed structs, enums or unions.
+//! If `Getters` is derived on unit, unnamed structs, enums or unions.
+//! If `Dissolve` is dervied on unnamed structs, enums or unions.
 //!
 //! # Cannot Do
 //! Const generics aren't handled by this macro nor are they tested.

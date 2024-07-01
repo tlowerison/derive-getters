@@ -3,6 +3,9 @@ use serde::{Serialize, Deserialize};
 use derive_getters::Dissolve;
 
 #[derive(Dissolve, Serialize, Deserialize)]
+struct Empty {}
+
+#[derive(Dissolve, Serialize, Deserialize)]
 struct Number {
     num: u64,
 }
@@ -37,6 +40,10 @@ impl LotsOfStuff {
 }
 
 fn main() {
+    let e = Empty {};
+    let unit = e.dissolve();
+    assert!(unit == ());
+
     let n = Number { num: 64 };
     let number = n.dissolve();
     assert!(number == 64);
@@ -53,7 +60,7 @@ fn main() {
     assert!(p == 123.4f64);
     assert!(c == 100);
     assert!(i == inner);
-    
+
     //let _ = stuff.dissolve();
 
     let stuff = LotsOfStuff {

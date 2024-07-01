@@ -46,13 +46,13 @@ impl Field {
         let name: Ident =  field.ident
             .clone()
             .ok_or(Error::new(Span::call_site(), Problem::UnnamedField))?;
-        
+
         Ok(Field {
             ty: field.ty.clone(),
             name: IndexOrName::Name(name),
         })
     }
-    
+
     fn from_fields_named(fields_named: &FieldsNamed) -> Result<Vec<Self>> {
         fields_named.named
             .iter()
@@ -131,7 +131,7 @@ pub struct NamedStruct<'a> {
 impl<'a> NamedStruct<'a> {
     pub fn emit(&self) -> TokenStream {
         let (impl_generics, struct_generics, where_clause) = self.original.generics
-            .split_for_impl();        
+            .split_for_impl();
         let struct_name = &self.name;
 
         let types: Punctuated<Type, syn::Token![,]> = self.fields
@@ -141,7 +141,9 @@ impl<'a> NamedStruct<'a> {
                 p
             });
 
-        let return_type = if types.len() > 1 {
+        let types_len = types.len();
+
+        let return_type = if types_len > 1 {
             let tup_group = Group::new(Delimiter::Parenthesis, quote!(#types));
             let type_tuple = TypeTuple {
                 paren_token: Paren { span: tup_group.delim_span() },
@@ -164,7 +166,7 @@ impl<'a> NamedStruct<'a> {
                 if count > 0 {
                     ts.extend(quote!(,))
                 }
-                
+
                 let field_name = &field.name;
                 let field_expr = match field_name {
                     IndexOrName::Name(name) => {
@@ -184,6 +186,13 @@ impl<'a> NamedStruct<'a> {
                 ts
             });
 
+        let body = if types_len > 0 {
+            quote! { ( #fields ) }
+        } else {
+            // Don't output `()` to avoid a compiler warning on an empty struct
+            TokenStream::new()
+        };
+
         let dissolve = Ident::new("dissolve", Span::call_site());
         let fn_name = self.dissolve_rename
             .as_ref()
@@ -197,7 +206,7 @@ impl<'a> NamedStruct<'a> {
             struct_name,
         );
         let fn_doc_comment = quote!(#[doc=#fn_comment]);
-        
+
         quote!(
             #impl_doc_comment
             impl #impl_generics #struct_name #struct_generics
@@ -205,18 +214,16 @@ impl<'a> NamedStruct<'a> {
             {
                 #fn_doc_comment
                 pub fn #fn_name(self) -> #return_type {
-                    (
-                        #fields
-                    )
+                    #body
                 }
             }
-        )        
+        )
     }
 }
 
 impl<'a> TryFrom<&'a DeriveInput> for NamedStruct<'a> {
     type Error = Error;
-    
+
     fn try_from(node: &'a DeriveInput) -> Result<Self> {
         let struct_data = named_struct(node)?;
         let fields = Field::from_struct(struct_data)?;

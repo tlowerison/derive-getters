@@ -1,4 +1,4 @@
-//! Error type. 
+//! Error type.
 use std::fmt;
 
 #[derive(Debug)]
@@ -35,6 +35,7 @@ pub enum Problem {
     NonParensGrouping,
     EmptyGrouping,
     TokensFollowSkip,
+    TokensFollowByValue,
     TokensFollowNewName,
     InvalidAttribute,
     BotchedDocComment,
@@ -60,6 +61,9 @@ impl fmt::Display for Problem {
                 write!(f, "no attribute tokens within parenthesis grouping")
             },
             Self::TokensFollowSkip => {
+                write!(f, "tokens are not meant to follow skip attribute")
+            },
+            Self::TokensFollowByValue => {
                 write!(f, "tokens are not meant to follow skip attribute")
             },
             Self::TokensFollowNewName => {

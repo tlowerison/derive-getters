@@ -125,34 +125,25 @@ impl Field {
         let work = Work::try_from(field.attrs.as_slice())?;
 
         match work {
-            Work { special: Some(Action::Skip), docs: _ } => Ok(None),
-            Work { special: Some(Action::Rename(ident)), docs } => {
+            Work { special: Some(Action::Skip), .. } => Ok(None),
+            Work { special, docs } => {
+                let ty = field.ty.clone();
+                let getter = match &special {
+                    Some(Action::Rename(ident)) => ident.clone(),
+                    _ => name.clone(),
+                };
+                let return_kind = match &special {
+                    Some(Action::Copy) => ReturnKind::Copy,
+                    _ => ReturnKind::Reference,
+                };
                 Ok(Some(Field {
-                    ty: field.ty.clone(),
+                    ty,
                     name,
-                    getter: ident,
-                    return_kind: Default::default(),
-                    docs
-                }))
-            },
-            Work { special: Some(Action::Copy), docs } => {
-                Ok(Some(Field {
-                    ty: field.ty.clone(),
-                    name: name.clone(),
-                    getter: name,
-                    return_kind: ReturnKind::Copy,
-                    docs
-                }))
-            },
-            Work { special: None, docs } => {
-                Ok(Some(Field {
-                    ty: field.ty.clone(),
-                    name: name.clone(),
-                    getter: name,
-                    return_kind: Default::default(),
+                    getter,
+                    return_kind,
                     docs,
                 }))
-            },
+            }
         }
     }
 

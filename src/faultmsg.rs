@@ -35,7 +35,7 @@ pub enum Problem {
     NonParensGrouping,
     EmptyGrouping,
     TokensFollowSkip,
-    TokensFollowByValue,
+    TokensFollowCopy,
     TokensFollowNewName,
     InvalidAttribute,
     BotchedDocComment,
@@ -63,8 +63,8 @@ impl fmt::Display for Problem {
             Self::TokensFollowSkip => {
                 write!(f, "tokens are not meant to follow skip attribute")
             },
-            Self::TokensFollowByValue => {
-                write!(f, "tokens are not meant to follow skip attribute")
+            Self::TokensFollowCopy => {
+                write!(f, "tokens are not meant to follow copy attribute")
             },
             Self::TokensFollowNewName => {
                 write!(f, "no further tokens must follow new name")

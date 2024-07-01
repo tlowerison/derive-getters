@@ -54,7 +54,7 @@ impl Parse for Action {
         } else if input.peek(copy) {
             let _ = input.parse::<copy>()?;
             if !input.is_empty() {
-                Err(Error::new(Span::call_site(), Problem::TokensFollowByValue))
+                Err(Error::new(Span::call_site(), Problem::TokensFollowCopy))
             } else {
                 Ok(Action::Copy)
             }

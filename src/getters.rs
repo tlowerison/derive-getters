@@ -1,26 +1,14 @@
 //! Getters internals
 use std::convert::TryFrom;
 
-use proc_macro2::{TokenStream, Span};
+use proc_macro2::{Span, TokenStream};
 use quote::{quote, ToTokens};
 use syn::{
-    DataStruct,
-    DeriveInput,
-    Fields,
-    FieldsNamed,
-    Type,
-    Ident,
-    LitStr,
-    Result,
-    Error,
-    Attribute,
     parse::{Parse, ParseStream},
+    Attribute, DataStruct, DeriveInput, Error, Fields, FieldsNamed, Ident, LitStr, Result, Type,
 };
 
-use crate::{
-    extract::named_struct,
-    faultmsg::Problem,
-};
+use crate::{extract::named_struct, faultmsg::Problem};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 enum Action {
@@ -49,7 +37,10 @@ impl Parse for Action {
             if !input.is_empty() {
                 Err(Error::new(Span::call_site(), Problem::TokensFollowNewName))
             } else {
-                Ok(Action::Rename(Ident::new(name.value().as_str(), Span::call_site())))
+                Ok(Action::Rename(Ident::new(
+                    name.value().as_str(),
+                    Span::call_site(),
+                )))
             }
         } else if input.peek(copy) {
             let _ = input.parse::<copy>()?;
@@ -99,7 +90,7 @@ impl TryFrom<&[Attribute]> for Work {
 
 pub enum ReturnKind {
     Copy,
-    Reference
+    Reference,
 }
 
 impl Default for ReturnKind {
@@ -118,14 +109,18 @@ pub struct Field {
 
 impl Field {
     fn from_field(field: &syn::Field) -> Result<Option<Self>> {
-        let name: Ident =  field.ident
+        let name: Ident = field
+            .ident
             .clone()
             .ok_or(Error::new(Span::call_site(), Problem::UnnamedField))?;
 
         let work = Work::try_from(field.attrs.as_slice())?;
 
         match work {
-            Work { special: Some(Action::Skip), .. } => Ok(None),
+            Work {
+                special: Some(Action::Skip),
+                ..
+            } => Ok(None),
             Work { special, docs } => {
                 let ty = field.ty.clone();
                 let getter = match &special {
@@ -148,7 +143,8 @@ impl Field {
     }
 
     fn from_fields_named(fields_named: &FieldsNamed) -> Result<Vec<Self>> {
-        fields_named.named
+        fields_named
+            .named
             .iter()
             .try_fold(Vec::new(), |mut fields, field| {
                 if let Some(field) = Field::from_field(field)? {
@@ -162,12 +158,8 @@ impl Field {
     fn from_struct(structure: &DataStruct) -> Result<Vec<Self>> {
         let fields_named = match structure.fields {
             Fields::Named(ref fields) => Ok(fields),
-            Fields::Unnamed(_) => Err(
-                Error::new(Span::call_site(), Problem::UnnamedField)
-            ),
-            Fields::Unit => Err(
-                Error::new(Span::call_site(), Problem::UnitStruct)
-            ),
+            Fields::Unnamed(_) => Err(Error::new(Span::call_site(), Problem::UnnamedField)),
+            Fields::Unit => Err(Error::new(Span::call_site(), Problem::UnitStruct)),
         }?;
 
         Self::from_fields_named(fields_named)
@@ -181,16 +173,12 @@ impl Field {
         let doc_comments: Vec<TokenStream> = if self.docs.is_empty() {
             let comment = format!(
                 " Get field `{}` from instance of `{}`.",
-                field_name,
-                struct_name,
+                field_name, struct_name,
             );
 
             vec![quote!(#[doc=#comment])]
         } else {
-            self.docs
-                .iter()
-                .map(|d| d.0.to_owned())
-                .collect()
+            self.docs.iter().map(|d| d.0.to_owned()).collect()
         };
 
         match &self.ty {
@@ -202,22 +190,20 @@ impl Field {
                         self.#field_name
                     }
                 )
-            },
-            _ => {
-                match self.return_kind {
-                    ReturnKind::Copy => quote!(
-                        #(#doc_comments)*
-                        pub fn #getter_name(&self) -> #returns {
-                            self.#field_name
-                        }
-                    ),
-                    ReturnKind::Reference => quote!(
-                        #(#doc_comments)*
-                        pub fn #getter_name(&self) -> &#returns {
-                            &self.#field_name
-                        }
-                    )
-                }
+            }
+            _ => match self.return_kind {
+                ReturnKind::Copy => quote!(
+                    #(#doc_comments)*
+                    pub fn #getter_name(&self) -> #returns {
+                        self.#field_name
+                    }
+                ),
+                ReturnKind::Reference => quote!(
+                    #(#doc_comments)*
+                    pub fn #getter_name(&self) -> &#returns {
+                        &self.#field_name
+                    }
+                ),
             },
         }
     }
@@ -231,10 +217,11 @@ pub struct NamedStruct<'a> {
 
 impl<'a> NamedStruct<'a> {
     pub fn emit(&self) -> TokenStream {
-        let (impl_generics, struct_generics, where_clause) = self.original.generics
-            .split_for_impl();
+        let (impl_generics, struct_generics, where_clause) =
+            self.original.generics.split_for_impl();
         let struct_name = &self.name;
-        let methods: Vec<TokenStream> = self.fields
+        let methods: Vec<TokenStream> = self
+            .fields
             .iter()
             .map(|field| field.emit(&self.name))
             .collect();

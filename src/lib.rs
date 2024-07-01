@@ -12,7 +12,7 @@
 //! publicly visible. The methods return an immutable reference to the struct field of the
 //! same name. If there is already a method defined with that name there'll be a collision.
 //! In these cases one of two attributes can be set to either `skip` or `rename` the getter.
-//! 
+//!
 //!
 //! # `Getters` Usage
 //!
@@ -25,7 +25,7 @@
 //! struct Number {
 //!     num: u64,    
 //! }
-//! 
+//!
 //! let number = Number { num: 655 };
 //! assert!(number.num() == &655);
 //! ```
@@ -114,7 +114,7 @@
 //!     price: f64,
 //!     count: usize,
 //! }
-//! 
+//!
 //! fn main() {
 //!     let stuff = Stuff {
 //!         name: "Hogie".to_owned(),
@@ -135,7 +135,7 @@
 //! # use derive_getters::Dissolve;
 //! #[derive(Dissolve)]
 //! struct Stuff(String, f64, usize);
-//! 
+//!
 //! fn main() {
 //!     let stuff = Stuff("Hogie".to_owned(), 123.4f64, 100);
 //!
@@ -207,12 +207,12 @@
 use std::convert::TryFrom;
 
 extern crate proc_macro;
-use syn::{DeriveInput, parse_macro_input};
+use syn::{parse_macro_input, DeriveInput};
 
-mod faultmsg;
 mod dissolve;
-mod getters;
 mod extract;
+mod faultmsg;
+mod getters;
 
 /// Generate getter methods for all named struct fields in a seperate struct `impl` block.
 /// Getter methods share the name of the field they're 'getting'. Methods return an
@@ -220,7 +220,7 @@ mod extract;
 #[proc_macro_derive(Getters, attributes(getter))]
 pub fn getters(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let ast = parse_macro_input!(input as DeriveInput);
-    
+
     getters::NamedStruct::try_from(&ast)
         .map(|ns| ns.emit())
         .unwrap_or_else(|err| err.to_compile_error())

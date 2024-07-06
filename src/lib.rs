@@ -18,16 +18,16 @@
 //!
 //! In lib.rs or main.rs;
 //!
-//! ```edition2021
+//!```edition2021
 //! use derive_getters::Getters;
 //!
 //! #[derive(Getters)]
-//! struct Number {
-//!     num: u64,    
+//! struct User {
+//!     name: String,
 //! }
 //!
-//! let number = Number { num: 655 };
-//! assert!(number.num() == &655);
+//! let user = User { name: "John Doe".to_string() };
+//! assert!(user.name() == "John Doe");
 //! ```
 //!
 //! Here, a method called `num()` has been created for the `Number` struct which gives a
@@ -179,7 +179,7 @@
 //! #[derive(Getters)]
 //! struct Number {
 //!     /// My special number.
-//!     num: u64,    
+//!     num: u64,
 //! }
 //! #
 //! # fn main() { }

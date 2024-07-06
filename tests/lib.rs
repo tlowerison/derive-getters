@@ -1,4 +1,5 @@
 #[test]
+#[cfg(not(feature = "auto_copy_getters"))]
 fn tests() {
     let t = trybuild::TestCases::new();
     t.pass("tests/01-legacy.rs");

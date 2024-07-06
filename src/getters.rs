@@ -3,8 +3,8 @@ use std::convert::TryFrom;
 
 use proc_macro2::{Span, TokenStream};
 use quote::{quote, ToTokens};
+use syn::parse::{Parse, ParseStream};
 use syn::{
-    parse::{Parse, ParseStream},
     Attribute, DataStruct, DeriveInput, Error, Fields, FieldsNamed, Ident, LitStr, Result, Type,
 };
 
@@ -129,7 +129,16 @@ impl Field {
                 };
                 let return_kind = match &special {
                     Some(Action::Copy) => ReturnKind::Copy,
-                    _ => ReturnKind::Reference,
+                    _ => {
+                        #[cfg(feature = "auto_copy_getters")]
+                        if type_implements_copy(&ty) {
+                            ReturnKind::Copy
+                        } else {
+                            ReturnKind::Reference
+                        }
+                        #[cfg(not(feature = "auto_copy_getters"))]
+                        ReturnKind::Reference
+                    }
                 };
                 Ok(Some(Field {
                     ty,
@@ -278,5 +287,36 @@ mod test {
         assert!(r.is_err());
 
         Ok(())
+    }
+}
+
+#[cfg(feature = "auto_copy_getters")]
+fn type_implements_copy(ty: &syn::Type) -> bool {
+    match ty {
+        Type::Array(array) => type_implements_copy(&array.elem), // Assuming array.elem is the type of the elements and we recursively check if it implements Copy
+        Type::BareFn(_) => true,                                 // Function pointers implement Copy
+        Type::Group(group) => type_implements_copy(&group.elem),
+        Type::ImplTrait(_) => false, // ImplTrait does not implement Copy
+        Type::Infer(_) => false,     // Infer does not implement Copy
+        Type::Macro(_) => false,     // Macros do not implement Copy
+        Type::Never(_) => true,      // The Never type (!) implements Copy
+        Type::Paren(paren) => type_implements_copy(&paren.elem),
+        Type::Path(path) => type_path_implements_copy(path),
+        Type::Ptr(_) => false,       // Raw pointers do not implement Copy
+        Type::Reference(_) => false, // References do not implement Copy
+        Type::Slice(slice) => type_implements_copy(&slice.elem), // Similar to arrays
+        Type::TraitObject(_) => false, // Trait objects do not implement Copy
+        Type::Tuple(tuple) => tuple.elems.iter().all(type_implements_copy), // All elements in the tuple must implement Copy
+        Type::Verbatim(_) => false, // Verbatim is a catch-all and does not implement Copy
+        _ => false,                 // Catch all for any other types not explicitly matched
+    }
+}
+
+#[cfg(feature = "auto_copy_getters")]
+fn type_path_implements_copy(path: &syn::TypePath) -> bool {
+    match path.to_token_stream().to_string().as_str() {
+        "u8" | "u16" | "u32" | "u64" | "u128" | "i8" | "i16" | "i32" | "i64" | "i128" | "f32"
+        | "f64" | "bool" | "char" | "usize" | "isize" => true,
+        _ => false,
     }
 }

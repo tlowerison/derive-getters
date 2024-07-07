@@ -33,6 +33,10 @@ Otherwise just import at crate root.
 extern crate derive_getters;
 ```
 
+## Features
+
+* `auto_copy_getters` - enable to automatically generate copy getters for primitive types (return by value instead of by reference).
+
 ## Usage
 
 When you have a struct you want to automatically derive getters for... Just add the derive at the top like so;

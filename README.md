@@ -92,12 +92,13 @@ impl Solid {
 ```
 
 ### Attributes
-This macro comes with two optional field attributes for `Getters`.
-* `#[getter(skip)]` to skip generating getters for a field.
-* `#[getter(rename = "name")]` to change the getter name to "name".
+`Getters` attributes:
+* `#[getter(skip)]` on the field to skip generating a getter for it.
+* `#[getter(copy)]` on the field to return a value by copy instead of by reference (note: the value must implement the `Copy` trait).
+* `#[getter(rename = "name")]` on the field to change the getter name to "name".
 
-And one optional struct attribute for `Dissolve`.
-* `#[dissolve(rename = "name")]` to change the name of the dissolve function to "name".
+`Dissolve` attributes:
+* `#[dissolve(rename = "name")]` on the struct to change the name of the dissolve function to "name".
 
 ## Comment Preservation
 

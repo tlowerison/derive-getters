@@ -247,10 +247,16 @@ impl<'a, T> Funky<'a, T> {
 
 See? Now with comments!
 
+## Testing
+With the presence of the new `#[cfg]` feature `auto_copy_getters`, not all tests will run with the usual `cargo test`. To run all tests in one go, give the [cargo-hack](https://crates.io/crates/cargo-hack) crate a try. After installing it, run;
+```
+cargo hack test --all-features
+```
+
 ## Caveats
 1. `Getters` cannot be derived for unit structs, tuple structs, or enums.
 2. `Dissolve` cannot be derived for unit structs or enums.
-3. All getter methods return an immutable reference, `&`, to their field. This means for some types it can get awkward.
+3. Without `auto_copy_getters`, all getter methods return an immutable reference, `&`, to their field. This means for some types it can get awkward. But with `auto_copy_getters` feature set there won't be any references used in the generated getters for simple `Copy` types.
 
 ## Alternatives
 [getset](https://github.com/Hoverbear/getset).

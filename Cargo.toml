@@ -22,6 +22,10 @@ name = "tests"
 path = "tests/lib.rs"
 
 [[test]]
+name = "all_ref_getters"
+path = "tests/all_ref_getters.rs"
+
+[[test]]
 name = "auto_copy_getters"
 path = "tests/auto_copy_getters.rs"
 required-features = ["auto_copy_getters"]

@@ -1,5 +1,5 @@
 error: unit struct has nothing to dissolve
- --> tests/10-dissolve-unit-struct.rs:3:30
+ --> tests/allref/10-dissolve-unit-struct.rs:3:30
   |
 3 | #[derive(Debug, Copy, Clone, Dissolve)]
   |                              ^^^^^^^^

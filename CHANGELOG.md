@@ -7,4 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+
 ### Added
+
+- `auto_copy_getters` feature. Thank you Denis Gorbachev <white.desk5790@fastmail.com>

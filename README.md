@@ -250,7 +250,7 @@ See? Now with comments!
 ## Testing
 With the presence of the new `#[cfg]` feature `auto_copy_getters`, not all tests will run with the usual `cargo test`. To run all tests in one go, give the [cargo-hack](https://crates.io/crates/cargo-hack) crate a try. After installing it, run;
 ```
-cargo hack test --all-features
+cargo hack test --each-feature
 ```
 
 ## Caveats

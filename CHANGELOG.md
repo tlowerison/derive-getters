@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Minimum Supported Rust Version (MSRV) bumped to v1.61.0
 
 ### Added
 
